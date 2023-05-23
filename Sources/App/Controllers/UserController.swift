@@ -7,6 +7,7 @@
 
 import Foundation
 import Vapor
+import JWT
 
 class UserController: RouteCollection {
     
@@ -16,6 +17,9 @@ class UserController: RouteCollection {
         
         // POST: /api/register
         usersGroup.post("register", use: register)
+        
+        // POST: /api/login
+        usersGroup.post("login", use: login)
     }
     
     func register(req: Request) async throws -> RegisterResponseDTO {
@@ -41,5 +45,37 @@ class UserController: RouteCollection {
         
         
         return RegisterResponseDTO(error: false	)
+    }
+    
+    
+    func login(req: Request) async throws -> LoginResponseDTO {
+        
+//        try User.validate(query: req)
+        
+        guard let user = try? req.content.decode(User.self) else {
+            throw Abort(.badRequest)
+        }
+        
+        // find if the user already exists
+        guard let existingUser = try await User.query(on: req.db)
+            .filter(\.$username, .equal, user.username)
+            .first() else {
+            throw Abort(.conflict, reason: "Username already exists.")
+        }
+        
+        // validate the password
+        let ifPasswordMatched = try await req.password.async.verify(user.password, created: existingUser.password)
+        
+        if !ifPasswordMatched {
+            throw Abort(.unauthorized)
+        }
+        
+        // create JWT Token
+        let authPayload = AuthPayload(subject: .init(stringLiteral: "grocery_app"),
+                                      expiration: .init(value: Date().addingTimeInterval(3600)),
+                                      userId: try existingUser.requireID())
+        
+        
+        return LoginResponseDTO(token: try req.jwt.sign(authPayload), sucess: true)
     }
 }
