@@ -21,6 +21,6 @@ struct AuthPayload: JWTPayload {
     }
     
     func verify(using signer: JWTKit.JWTSigner) throws {
-        
+        try self.expiration.verifyNotExpired()
     }
 }

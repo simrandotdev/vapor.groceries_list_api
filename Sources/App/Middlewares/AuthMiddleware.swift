@@ -13,7 +13,9 @@ struct AuthMiddleware: AsyncMiddleware {
     
     func respond(to request: Request, chainingTo next: AsyncResponder) async throws -> Response {
         
-        let payload = try request.jwt.verify(as: AuthPayload.self)
+        guard let payload = try? request.jwt.verify(as: AuthPayload.self) else {
+            throw Abort(.unauthorized)
+        }
         
         guard let _ = try await User.query(on: request.db).filter(\.$id, .equal, payload.userId).first() else {
             throw Abort(.unauthorized)
