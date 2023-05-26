@@ -14,6 +14,7 @@ public func configure(_ app: Application) async throws {
     // Migrations
     app.migrations.add(CreateUserMigration())
     app.migrations.add(CreateCategoriesMigration())
+    app.migrations.add(CreateGroceryTableMigration())
     
     app.jwt.signers.use(.hs256(key: "SECRETKEYHERE"))
     
