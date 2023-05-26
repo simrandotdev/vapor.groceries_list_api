@@ -12,9 +12,13 @@ class GroceryController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         
-        routes.post("api","users", ":userId", "category", ":categoryId", "groceries", use: addGrocery)
-        routes.get("api","users", ":userId", "category", ":categoryId", "groceries", use: getGroceries)
-        routes.delete("api","users", ":userId", "category", ":categoryId", "groceries", ":groceryId", use: deleteGrocery)
+        let groceriesAPI = routes
+            .grouped(AuthMiddleware())
+            .grouped("api", "category", ":categoryId", "groceries")
+        
+        groceriesAPI.post(use: addGrocery)
+        groceriesAPI.get(use: getGroceries)
+        groceriesAPI.delete(":groceryId", use: deleteGrocery)
     }
     
     func addGrocery(req: Request) async throws -> String {

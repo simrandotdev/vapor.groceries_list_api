@@ -12,7 +12,8 @@ class CategoryController: RouteCollection {
     func boot(routes: RoutesBuilder) throws {
         
         // /api/users/:userId
-        let api = routes.grouped("api", "users", ":userId")
+        let api = routes.grouped(AuthMiddleware())
+            .grouped("api")
         
         // POST: Saving GroceryCategory
         // /api/user/:userId/categories
