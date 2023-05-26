@@ -23,6 +23,7 @@ class GroceryController: RouteCollection {
         api.get("categories", use: fetchCategories)
         
         api.put("categories", ":categoryId", use: updateCategory)
+        api.delete("categories", ":categoryId", use: deleteCategory)
     }
     
     func saveCategory(req: Request) async throws -> CategoryResponseDTO {
@@ -93,6 +94,33 @@ class GroceryController: RouteCollection {
         
 
         return CategoryResponseDTO(category: category)
+    }
+    
+    
+    func deleteCategory(req: Request) async throws -> String {
+
+        guard let userId = req.parameters.get("userId", as: UUID.self) else {
+            throw Abort(.badRequest)
+        }
+
+        guard let categoryId = req.parameters.get("categoryId", as: UUID.self) else {
+            throw Abort(.badRequest)
+        }
+
+
+        let categoryWithIdQuery  =  Category
+            .query(on: req.db)
+            .filter(\.$user.$id, .equal, userId)
+
+        guard let category = try await categoryWithIdQuery.filter(\.$id, .equal, categoryId)
+            .first() else {
+            throw Abort(.notFound)
+        }
+
+        
+        try await category.delete(on: req.db)
+        
+        return "Successfully deleted"
     }
     
     
