@@ -7,7 +7,7 @@
 
 import Vapor
 
-class GroceryController: RouteCollection {
+class CategoryController: RouteCollection {
     
     func boot(routes: RoutesBuilder) throws {
         
